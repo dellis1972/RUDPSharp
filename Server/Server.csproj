@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp3.1;net48</TargetFrameworks>
+    <LibZipSharpBundleAllNativeLibraries Condition="'$(TargetFramework)' == 'net48'">true</LibZipSharpBundleAllNativeLibraries>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Xamarin.LibZipSharp" Version="1.0.9"/>
+  </ItemGroup>
+</Project>
