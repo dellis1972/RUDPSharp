@@ -9,23 +9,28 @@ namespace RUDPSharp
             public PacketType PacketType { get; private set; }
             public Channel Channel { get; private set; }
 
-            public short Sequence { get; private set; }
+            public int Sequence { get; private set; }
 
             public byte [] Data { get; private set; }
 
             public static PendingPacket FromPacket (Packet packet)
             {
                 return new PendingPacket () {
-                    Sequence = 1,
+                    Sequence = packet.Sequence,
                     Channel = packet.Channel,
                     PacketType = packet.PacketType,
                     Data = packet.Payload.ToArray (),
                 };
             }
         }
-        Queue<PendingPacket> outgoing = new Queue<PendingPacket> (100);
-        Queue<PendingPacket> incoming = new Queue<PendingPacket> (100);
+        Queue<PendingPacket> outgoing;
+        Queue<PendingPacket> incoming;
 
+        public UnreliableChannel (int maxBufferSize = 100)
+        {
+            outgoing = new Queue<PendingPacket> (maxBufferSize);
+            incoming = new Queue<PendingPacket> (maxBufferSize);
+        }
         public bool TryGetNextOutgoingPacket (out PendingPacket packet)
         {
             packet = null;

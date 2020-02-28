@@ -3,7 +3,7 @@ using System;
 namespace RUDPSharp
 {
     public enum Channel : byte {
-        // Just send the data and hope it gets there.
+        // Just send the data and hope it gets there. Packets can arrive out of order
         None = 0x00,
         // Send the data and hope it gets there. If and old packet arrives disgard it.
         InOrder = 0x01,

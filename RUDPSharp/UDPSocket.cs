@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Client
+namespace RUDPSharp
 {
 public class UDPSocket : IDisposable {
         Socket socketIP4;
@@ -107,6 +107,10 @@ public class UDPSocket : IDisposable {
         public UDPSocket(string name = "UDPSocket")
         {
             _name = name;
+        }
+
+        public virtual void Initialize ()
+        {
             socketIP4 = new Socket (AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             //socketIP6 = new Socket (AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
 
@@ -114,7 +118,7 @@ public class UDPSocket : IDisposable {
             //SetupSocket (socketIP6, reuseAddress: true);
         }
 
-        public bool Listen (int port)
+        public virtual bool Listen (int port)
         {
             var ep = new IPEndPoint (IPAddress.Any, port);
             bool result = Bind (socketIP4, ep);
@@ -124,7 +128,7 @@ public class UDPSocket : IDisposable {
             return result;
         }
 
-        public Task<(EndPoint remote, byte [] data, int length)> ReceiveFrom (EndPoint endPoint, System.Threading.CancellationToken token)
+        public virtual Task<(EndPoint remote, byte [] data, int length)> ReceiveFrom (EndPoint endPoint, System.Threading.CancellationToken token)
         {
             SocketAsyncEventArgs receiveAsyncArgs = new SocketAsyncEventArgs ();
             TaskCompletionSource<(EndPoint remote, byte [] data, int length)> receiveTcs = new TaskCompletionSource<(EndPoint remote, byte[] data, int length)> ();
@@ -143,11 +147,11 @@ public class UDPSocket : IDisposable {
             return receiveTcs.Task;
         }
 
-        public void ReturnBuffer (byte[] buffer){
+        public virtual void ReturnBuffer (byte[] buffer){
             pool.Return (buffer);
         }
 
-        public Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
+        public virtual Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
         {
             SocketAsyncEventArgs sendAsyncArgs = new SocketAsyncEventArgs ();
             TaskCompletionSource<bool> sendTcs = new TaskCompletionSource<bool> ();
