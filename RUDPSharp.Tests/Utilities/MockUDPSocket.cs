@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using RUDPSharp;
 
@@ -8,16 +9,12 @@ namespace RUDPSharp.Tests
 {
     public class MockUDPSocket : UDPSocket {
 
-        ConcurrentQueue<(EndPoint endPoint, byte[] data)> outgoing = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
+        //ConcurrentQueue<(EndPoint endPoint, byte[] data)> outgoing = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
         ConcurrentQueue<(EndPoint endPoint, byte[] data)> incoming = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
 
         MockUDPSocket link;
         bool listening = false;
         EndPoint endPoint;
-
-        public new EndPoint EndPoint {
-            get { return endPoint; }
-        }
 
         public MockUDPSocket(string name = "UDPSocket")
         {
@@ -39,6 +36,11 @@ namespace RUDPSharp.Tests
             endPoint = new IPEndPoint (IPAddress.Loopback, port);
             listening = true;
             return listening;
+        }
+
+        protected override EndPoint GetEndPoint ()
+        {
+            return endPoint;
         }
 
         public async override Task<(EndPoint remote, byte [] data, int length)> ReceiveFrom (EndPoint endPoint, System.Threading.CancellationToken token)

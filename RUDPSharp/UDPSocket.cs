@@ -17,11 +17,12 @@ public class UDPSocket : IDisposable {
 
         byte[] emptyData = new byte[0];
         BufferPool<byte> pool = new BufferPool<byte> (BufferSize, 10);
-        Pool<SocketAsyncEventArgs> argsPool = new Pool<SocketAsyncEventArgs> (10);
+        SocketAsyncEventArgsPool<SocketAsyncEventArgs> recieveArgsPool;
+        SocketAsyncEventArgsPool<SocketAsyncEventArgs> sendArgsPool;
 
         public EndPoint EndPoint {
             get {
-                return socketIP4?.LocalEndPoint;// ?? socketIP6.LocalEndPoint;
+                return GetEndPoint ();
             }
         }
 
@@ -31,8 +32,10 @@ public class UDPSocket : IDisposable {
             socket.SendTimeout = 500;
             socket.ReceiveBufferSize = BufferSize;
             socket.SendBufferSize = BufferSize;
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
                 socket.IOControl(SioUdpConnreset, new byte[] {0}, null);
+                socket.SetIPProtectionLevel (IPProtectionLevel.Unrestricted); // NAT??
+            }
             socket.ExclusiveAddressUse = !reuseAddress;
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optionValue: reuseAddress);
             if (socket.AddressFamily == AddressFamily.InterNetwork) {
@@ -65,6 +68,7 @@ public class UDPSocket : IDisposable {
                 }
                 return false;
             }
+            Console.WriteLine ($"{endPoint} Bound");
             return socket.IsBound;
         }
 
@@ -84,6 +88,7 @@ public class UDPSocket : IDisposable {
                     Console.WriteLine (ex);
                 }
             }
+            sendArgsPool.Return(e);
         }
 
         public struct DataReceived {
@@ -93,6 +98,8 @@ public class UDPSocket : IDisposable {
 
         void Received (object sender, SocketAsyncEventArgs e)
         {
+            //Console.WriteLine ($"Recieved packet from {e.RemoteEndPoint}");
+            
             DataReceived tcs = (DataReceived)(e.UserToken);
             using (tcs.Registration) {
                 try {
@@ -102,15 +109,21 @@ public class UDPSocket : IDisposable {
                     Console.WriteLine (ex);
                 }
             }
+            recieveArgsPool.Return(e);
+
         }
 
         public UDPSocket(string name = "UDPSocket")
         {
             _name = name;
+            recieveArgsPool = new SocketAsyncEventArgsPool<SocketAsyncEventArgs> (10, Received);
+            sendArgsPool = new SocketAsyncEventArgsPool<SocketAsyncEventArgs> (10, Sent);
         }
 
         public virtual void Initialize ()
         {
+            if (socketIP4 != null)
+                return;
             socketIP4 = new Socket (AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             //socketIP6 = new Socket (AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
 
@@ -130,10 +143,12 @@ public class UDPSocket : IDisposable {
 
         public virtual Task<(EndPoint remote, byte [] data, int length)> ReceiveFrom (EndPoint endPoint, System.Threading.CancellationToken token)
         {
-            SocketAsyncEventArgs receiveAsyncArgs = new SocketAsyncEventArgs ();
+            //Console.WriteLine ($"Waiting for packets from {endPoint}");
+            
+            SocketAsyncEventArgs receiveAsyncArgs = recieveArgsPool.Rent ();
             TaskCompletionSource<(EndPoint remote, byte [] data, int length)> receiveTcs = new TaskCompletionSource<(EndPoint remote, byte[] data, int length)> ();
             receiveAsyncArgs.RemoteEndPoint = endPoint;
-            receiveAsyncArgs.Completed += Received;
+            //receiveAsyncArgs.Completed += Received;
             var buffer = pool.Rent (socketIP4.ReceiveBufferSize);
             receiveAsyncArgs.SetBuffer (buffer, 0, buffer.Length);
             var registation = token.Register (() => receiveTcs.TrySetCanceled ());
@@ -153,11 +168,12 @@ public class UDPSocket : IDisposable {
 
         public virtual Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
         {
-            SocketAsyncEventArgs sendAsyncArgs = new SocketAsyncEventArgs ();
+            //Console.WriteLine ($"Sending packet to {endPoint}");
+            SocketAsyncEventArgs sendAsyncArgs = sendArgsPool.Rent ();
             TaskCompletionSource<bool> sendTcs = new TaskCompletionSource<bool> ();
             var registration = token.Register (() => sendTcs.TrySetCanceled ());
             sendAsyncArgs.RemoteEndPoint = endPoint;
-            sendAsyncArgs.Completed += Sent;
+            //sendAsyncArgs.Completed += Sent;
             sendAsyncArgs.SetBuffer (data, 0, data.Length);
             sendAsyncArgs.UserToken = new DataSent {
                 TaskCompletion = sendTcs,
@@ -167,6 +183,11 @@ public class UDPSocket : IDisposable {
                 Sent (this, sendAsyncArgs);
             }
             return sendTcs.Task;
+        }
+
+        protected virtual EndPoint GetEndPoint ()
+        {
+            return  socketIP4?.LocalEndPoint;// ?? socketIP6.LocalEndPoint;;
         }
 
         public void Dispose()

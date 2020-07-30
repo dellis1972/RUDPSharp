@@ -15,12 +15,12 @@ namespace RUDPSharp.Tests
         public void PacketTest(PacketType packetType, Channel channel, int sequence, byte[] payload)
         {
             var p1 = new Packet (packetType, channel, (ushort)sequence, payload);
-            var p2 = new Packet (p1.Data);
+            var p2 = new Packet (p1.Data, p1.Data.Length);
 
             Assert.AreEqual (p1.Channel, p2.Channel, $"{p1.Channel} != {p2.Channel}");
             Assert.AreEqual (p1.PacketType, p2.PacketType, $"{p1.PacketType} != {p2.PacketType}");
             Assert.AreEqual (p1.Sequence, p2.Sequence, $"{p1.Sequence} != {p2.Sequence}");
-            Assert.AreEqual (p1.Payload.ToArray (), p2.Payload.ToArray (), $"({(string.Join (",", p1.Payload.ToArray ()))}) != ({(string.Join (",", p1.Payload.ToArray ()))})");
+            Assert.AreEqual (p1.Payload.ToArray (), p2.Payload.ToArray (), $"({(string.Join (",", p1.Payload.ToArray ()))}) != ({(string.Join (",", p2.Payload.ToArray ()))})");
         }
     }
 }

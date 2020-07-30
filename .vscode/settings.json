@@ -1,8 +1,11 @@
 {
     "testExplorer.addToEditorContextMenu": true,
-    "nxunitExplorer.nunit": "$HOME/nunit.consolerunner/3.9.0/tools/nunit3-console.exe",
+    "nxunitExplorer.nunit": "packages/nunit.consolerunner/3.9.0/tools/nunit3-console.exe",
     "nxunitExplorer.modules": [
-        "RUDPSharp.Tests/bin/Debug/netcoreapp3.1/RUDPSharp.Tests.dll",
+        "RUDPSharp.Tests/bin/Debug/net48/RUDPSharp.Tests.dll",
     ],
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "cSpell.words": [
+        "rdup"
+    ]
 }

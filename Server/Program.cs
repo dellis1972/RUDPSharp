@@ -1,6 +1,7 @@
 ﻿using System;
-using System.IO;
-using Xamarin.Tools.Zip;
+using System.Text;
+using System.Threading;
+using RUDPSharp;
 
 namespace Server
 {
@@ -8,10 +9,28 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            using (var zip = ZipArchive.Open ("/Users/dean/Downloads/xnageometry.zip", FileMode.Open)) {
-                foreach (var e in zip) {
-                    Console.WriteLine ($"{e.FullName} {e.CompressedSize} {e.CompressionMethod} {e.CRC} {e.ModificationTime} {e.Size}");
+            using (var server = new RUDP<UDPSocket> (new UDPSocket ("ServerSocket"))) {
+                server.ConnetionRequested += (e, d) => {
+                    Console.WriteLine ($"{e} Connected. {Encoding.ASCII.GetString (d)}");
+                    return true;
+                };
+                server.DataReceived += (e, d) => {
+                    string message = Encoding.UTF8.GetString (d);
+                    Console.WriteLine ($"{e}: {message} ");
+                    server.SendTo (e, Channel.ReliableInOrder, d);
+                    return true;
+                };
+                server.Start (8001);
+                Console.WriteLine ("Waiting...");
+                bool done = false;
+                while (!done) {
+                    if (Console.KeyAvailable && Console.ReadKey ().Key == ConsoleKey.Q) {
+                        break;
+                    }
+                    Thread.Sleep(10);
                 }
+                Console.WriteLine ("Shutting Down");
+                server.Disconnect ();
             }
         }
     }

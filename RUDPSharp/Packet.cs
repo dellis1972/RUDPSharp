@@ -17,10 +17,10 @@ namespace RUDPSharp
         byte [] rawData;
         Span<byte> span;
 
-        public Packet (byte[] data)
+        public Packet (byte[] data, int length)
         {
             rawData = data;
-            span = new Span<byte>(rawData);
+            span = new Span<byte>(rawData, 0, length);
 
             var header = DecodeHeader (rawData[0]);
             PacketType = header.type;

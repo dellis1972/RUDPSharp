@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net.Sockets;
 
 namespace RUDPSharp
 {
@@ -23,6 +24,34 @@ namespace RUDPSharp
             pool.Enqueue (item);
         }
     }
+
+    public class SocketAsyncEventArgsPool<T> where T : SocketAsyncEventArgs, new ()
+    {
+        ConcurrentQueue<T> pool = new ConcurrentQueue<T> ();
+        EventHandler<SocketAsyncEventArgs> completed;
+
+        public SocketAsyncEventArgsPool(int maxPool, EventHandler<SocketAsyncEventArgs> action)
+        {
+            completed = action;
+            for (int i=0; i < maxPool; i++) {
+                var item = new T();
+                item.Completed += completed;
+                pool.Enqueue (item);
+            }
+        }
+        public T Rent (){
+            if (pool.TryDequeue (out T item))
+                return item;
+            item = new T();
+            item.Completed += completed;
+            return item;
+        }
+
+        public void Return (T item) {
+            pool.Enqueue (item);
+        }
+    }
+
     public class BufferPool<T> {
         ConcurrentDictionary<int, ConcurrentQueue<T[]>> pool = new ConcurrentDictionary<int, ConcurrentQueue<T[]>> ();
         public BufferPool(int maxArraySize, int maxPool)

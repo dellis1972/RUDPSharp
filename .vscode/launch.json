@@ -16,18 +16,31 @@
             "console": "internalConsole"
         },
         {
+            "name": ".NET Core Launch Client (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Client/bin/Debug/netcoreapp3.1/Client.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
             "name": "Launch Client",
             "type": "mono",
             "request": "launch",
-            "program": "${workspaceRoot}/Client/bin/Debug/netcoreapp3.1/Client.dll",
+            "program": "${workspaceRoot}/Client/bin/Debug/net48/Client.exe",
             "cwd": "${workspaceRoot}",
+            "console": "externalTerminal"
         },
         {
             "name": "Launch Server",
             "type": "mono",
             "request": "launch",
-            "program": "${workspaceRoot}/Server/bin/Debug/netcoreapp3.1/Server.dll",
-            "cwd": "${workspaceRoot}"
+            "program": "${workspaceRoot}/Server/bin/Debug/net48/Server.exe",
+            "cwd": "${workspaceRoot}",
+            "console": "externalTerminal"
         },
         {
             "name": "Attach",

@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace RUDPSharp
 {
@@ -9,35 +12,44 @@ namespace RUDPSharp
             public PacketType PacketType { get; private set; }
             public Channel Channel { get; private set; }
 
+            public EndPoint RemoteEndPoint { get; private set;}
+
             public int Sequence { get; private set; }
 
             public byte [] Data { get; private set; }
 
-            public static PendingPacket FromPacket (Packet packet)
+            public long Sent { get; set; }
+            public short Attempts { get; set; }
+
+            public static PendingPacket FromPacket (EndPoint endPoint, Packet packet, bool incoming = true)
             {
                 return new PendingPacket () {
+                    RemoteEndPoint = endPoint,
                     Sequence = packet.Sequence,
                     Channel = packet.Channel,
                     PacketType = packet.PacketType,
-                    Data = packet.Payload.ToArray (),
+                    Data = incoming ? packet.Payload.ToArray () : packet.Data,
+                    Sent = DateTime.Now.Ticks,
                 };
             }
         }
-        Queue<PendingPacket> outgoing;
-        Queue<PendingPacket> incoming;
+        ConcurrentQueue<PendingPacket> outgoing;
+        ConcurrentQueue<PendingPacket> incoming;
+
+        protected ConcurrentQueue<PendingPacket> Outgoing => outgoing;
+        protected ConcurrentQueue<PendingPacket> Incoming => incoming;
 
         public UnreliableChannel (int maxBufferSize = 100)
         {
-            outgoing = new Queue<PendingPacket> (maxBufferSize);
-            incoming = new Queue<PendingPacket> (maxBufferSize);
+            outgoing = new ConcurrentQueue<PendingPacket> ();
+            incoming = new ConcurrentQueue<PendingPacket> ();
         }
         public bool TryGetNextOutgoingPacket (out PendingPacket packet)
         {
             packet = null;
             if (outgoing.Count == 0)
                 return false;
-            packet = outgoing.Dequeue ();
-            return true;
+            return outgoing.TryDequeue (out packet);
         }
 
         public bool TryGetNextIncomingPacket (out PendingPacket packet)
@@ -45,17 +57,34 @@ namespace RUDPSharp
             packet = null;
             if (incoming.Count == 0)
                 return false;
-            packet = incoming.Dequeue ();
-            return true;
+            return incoming.TryDequeue (out packet);
         }
-        public virtual void QueueOutgoingPacket (Packet packet)
+        public virtual PendingPacket QueueOutgoingPacket (EndPoint endPoint, Packet packet)
         {
-            outgoing.Enqueue (PendingPacket.FromPacket (packet));
+            var pendingPacket = PendingPacket.FromPacket (endPoint, packet, incoming: false);
+            outgoing.Enqueue (pendingPacket);
+            return pendingPacket;
         }
 
-        public virtual void QueueIncomingPacket (Packet packet)
+        public virtual PendingPacket QueueIncomingPacket (EndPoint endPoint, Packet packet)
         {
-            incoming.Enqueue (PendingPacket.FromPacket (packet));
+            var pendingPacket = PendingPacket.FromPacket (endPoint, packet);
+            incoming.Enqueue (pendingPacket);
+            return pendingPacket;
+        }
+
+        public virtual IEnumerable<PendingPacket> GetPendingOutgoingPackets ()
+        {
+            while (TryGetNextOutgoingPacket (out PendingPacket pendingPacket)) {
+                yield return pendingPacket;
+            }
+        }
+
+        public virtual IEnumerable<PendingPacket> GetPendingIncomingPackets ()
+        {
+            while (TryGetNextIncomingPacket (out PendingPacket pendingPacket)) {
+                yield return pendingPacket;
+            }
         }
     }
 }
