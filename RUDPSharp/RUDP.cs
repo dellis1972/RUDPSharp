@@ -66,7 +66,7 @@ namespace RUDPSharp
         public bool Disconnect ()
         {
             foreach (var remote in remotes){
-                SendTo (remote.Key, PacketType.Disconnect, Channel.Reliable, Encoding.ASCII.GetBytes ("h2ik"));
+                SendTo (remote.Key, PacketType.Disconnect, Channel.Reliable, Encoding.ASCII.GetBytes ("Bye"));
             }
             Thread.Sleep(500);
             remotes.Clear ();
@@ -75,7 +75,7 @@ namespace RUDPSharp
 
         public bool Disconnect (EndPoint endPoint)
         {
-            SendTo (endPoint, PacketType.Disconnect, Channel.Reliable, Encoding.ASCII.GetBytes ("h2ik"));
+            SendTo (endPoint, PacketType.Disconnect, Channel.Reliable, Encoding.ASCII.GetBytes ("Bye"));
             Thread.Sleep(500);
             remotes.TryRemove (endPoint, out RUDPRemoteClient<T> client);
             return true;
@@ -107,28 +107,20 @@ namespace RUDPSharp
             remotes[endPoint].QueueOutgoing (endPoint, packetType, channel, payload);
         }
 
-        async Task ReceivedFrom (EndPoint any)
-        {
-            RUDPRemoteClient<T> client;
-            var incoming = await socket.ReceiveFrom (any, tokenSource.Token);
-            if (incoming.length > 0) {
-                if (!remotes.TryGetValue (incoming.remote, out client)) {
-                    client = new RUDPRemoteClient<T> (this, incoming.remote);
-                    remotes[incoming.remote] = client;
-                }
-                client.QueueIncoming (incoming.remote, incoming.data, incoming.length);
-            }
-        }
-
         void ReadSocket ()
         {
-            var any = new IPEndPoint(IPAddress.Any, port);
+            RUDPRemoteClient<T> client;
             try {
                 while (!tokenSource.IsCancellationRequested) {
-                    ReceivedFrom (any).Wait (tokenSource.Token);
+                    foreach (var incoming in socket.RecievedPackets.GetConsumingEnumerable (tokenSource.Token)) {
+                        if (!remotes.TryGetValue (incoming.remote, out client)) {
+                            client = new RUDPRemoteClient<T> (this, incoming.remote);
+                            remotes[incoming.remote] = client;
+                        }
+                        client.QueueIncoming (incoming.remote, incoming.data);
+                    }
                 }
-            } catch (Exception) {
-
+            } catch (Exception ex) {
             }
         }
 
@@ -160,6 +152,7 @@ namespace RUDPSharp
 
         public void Dispose ()
         {
+            socket.Complete ();
             tokenSource.Cancel ();
             if (poll != null) {
                 poll.Wait ();

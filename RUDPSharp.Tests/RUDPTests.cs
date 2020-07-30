@@ -73,17 +73,20 @@ namespace RUDPSharp.Tests
             clientSocket.Listen (clientAny.Port);
             var ping = Encoding.ASCII.GetBytes ("Ping");
             Assert.IsTrue (await clientSocket.SendTo (serverSocket.EndPoint, ping, default));
-            var data = await serverSocket.ReceiveFrom (serverAny, default);
+            
+            var data = serverSocket.RecievedPackets.Take ();
             Assert.AreEqual (clientSocket.EndPoint, data.remote);
-            Assert.AreEqual (ping.Length, data.length);
+            Assert.AreEqual (ping.Length, data.data.Length);
             Assert.AreEqual (ping, data.data, $"({(string.Join (",", data.data))}) != ({(string.Join (",", ping))})");
 
             var pong = Encoding.ASCII.GetBytes ("Pong");
             Assert.IsTrue (await serverSocket.SendTo (clientSocket.EndPoint, pong, default));
-            data = await clientSocket.ReceiveFrom (serverAny, default);
+            data = clientSocket.RecievedPackets.Take ();
             Assert.AreEqual (serverSocket.EndPoint, data.remote);
-            Assert.AreEqual (pong.Length, data.length);
+            Assert.AreEqual (pong.Length, data.data.Length);
             Assert.AreEqual (pong, data.data, $"({(string.Join (",", data.data))}) != ({(string.Join (",", pong))})");
+            serverSocket.Dispose ();
+            clientSocket.Dispose ();
         }
 
         [Test]

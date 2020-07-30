@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>dotnet-RUDPSharp.Service-C99C985A-FF44-41A6-94D2-C83509823C91</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0-preview.7.20364.11" />
+    <ProjectReference Include="..\RUDPSharp\RUDPSharp.csproj" />
+  </ItemGroup>
+</Project>

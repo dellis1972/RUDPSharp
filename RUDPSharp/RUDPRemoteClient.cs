@@ -32,9 +32,9 @@ namespace RUDPSharp
             channels[packet.Channel].QueueOutgoingPacket (remoteEndPoint, packet);
         }
 
-        public void QueueIncoming (EndPoint remoteEndPoint, byte[] data, int length)
+        public void QueueIncoming (EndPoint remoteEndPoint, byte[] data)
         {
-            var packet = new Packet (data, length);
+            var packet = new Packet (data, data.Length);
             channels[packet.Channel].QueueIncomingPacket (remoteEndPoint, packet);
         }
 

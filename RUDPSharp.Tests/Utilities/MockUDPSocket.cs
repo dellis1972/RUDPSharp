@@ -11,6 +11,7 @@ namespace RUDPSharp.Tests
 
         //ConcurrentQueue<(EndPoint endPoint, byte[] data)> outgoing = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
         ConcurrentQueue<(EndPoint endPoint, byte[] data)> incoming = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
+        BlockingCollection<EndPoint> c = new BlockingCollection<EndPoint> ();
 
         MockUDPSocket link;
         bool listening = false;
@@ -18,7 +19,6 @@ namespace RUDPSharp.Tests
 
         public MockUDPSocket(string name = "UDPSocket")
         {
-
         }
 
         public override void Initialize()
@@ -43,21 +43,12 @@ namespace RUDPSharp.Tests
             return endPoint;
         }
 
-        public async override Task<(EndPoint remote, byte [] data, int length)> ReceiveFrom (EndPoint endPoint, System.Threading.CancellationToken token)
-        {
-            if (listening && incoming.TryDequeue (out (EndPoint endPoint, byte[] data) packet)) {
-                return (packet.endPoint, packet.data, packet.data.Length);
-            }
-            return (new IPEndPoint (0,0), new byte[0], 0);
-        }
-
         public override void ReturnBuffer (byte[] buffer){
         }
 
         public async override Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
         {
-            link.incoming.Enqueue ((EndPoint, data));
-            return true;
+            return link.RecievedPackets.TryAdd ((EndPoint, data));
         }
     }
 }
