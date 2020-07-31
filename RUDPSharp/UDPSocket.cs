@@ -28,12 +28,16 @@ public class UDPSocket : IDisposable {
         }
 
         public int MaxReceiveThreads { get; set; } = 10;
+
+        public int SendTimeout { get; set; } = 500;
+
+        public int ReceiveTimeout { get; set; } = 500;
         public BlockingCollection<(EndPoint remote, byte [] data)> RecievedPackets => recievedPackets;
 
         void SetupSocket (Socket socket, bool reuseAddress = false)
         {
-            socket.ReceiveTimeout = 500;
-            socket.SendTimeout = 500;
+            socket.ReceiveTimeout = ReceiveTimeout;
+            socket.SendTimeout = SendTimeout;
             socket.ReceiveBufferSize = BufferSize;
             socket.SendBufferSize = BufferSize;
             if (Environment.OSVersion.Platform == PlatformID.Win32NT) {

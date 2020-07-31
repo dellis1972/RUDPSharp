@@ -33,7 +33,7 @@ namespace Client
                     Console.WriteLine ($"{e}: {Encoding.UTF8.GetString (d)} ");
                     return true;
                 };
-                client.Start (8000);
+                client.Start (8001);
                 Console.WriteLine ("Connecting...");
                 client.Connect (remoteIpAddress.ToString (), port);
                 EndPoint ep = new IPEndPoint (remoteIpAddress, port);

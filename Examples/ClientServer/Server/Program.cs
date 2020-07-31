@@ -17,13 +17,13 @@ namespace Server
                 server.DataReceived += (e, d) => {
                     string message = Encoding.UTF8.GetString (d);
                     Console.WriteLine ($"{e}: {message} ");
-                    server.SendTo (e, Channel.ReliableInOrder, d);
+                    server.SendToAll (Channel.ReliableInOrder, d);
                     return true;
                 };
                 server.Disconnected += (e) => {
                     Console.WriteLine ($"{e} Disconnected.");
                 };
-                server.Start (8001);
+                server.Start (8000);
                 Console.WriteLine ("Waiting...");
                 bool done = false;
                 while (!done) {

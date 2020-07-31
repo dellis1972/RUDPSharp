@@ -5,6 +5,6 @@
     <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RUDPSharp\RUDPSharp.csproj" />
+    <ProjectReference Include="..\..\..\RUDPSharp\RUDPSharp.csproj" />
   </ItemGroup>
 </Project>
