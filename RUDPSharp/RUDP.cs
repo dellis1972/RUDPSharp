@@ -107,6 +107,13 @@ namespace RUDPSharp
             remotes[endPoint].QueueOutgoing (endPoint, packetType, channel, payload);
         }
 
+        public void Ping ()
+        {
+            foreach (var remote in remotes) {
+                remote.Value.QueueOutgoing (remote.Key, PacketType.Ping, Channel.None, BitConverter.GetBytes (DateTime.Now.Ticks));
+            }
+        }
+
         void ReadSocket ()
         {
             RUDPRemoteClient<T> client;

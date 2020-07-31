@@ -20,6 +20,9 @@ namespace Server
                     server.SendTo (e, Channel.ReliableInOrder, d);
                     return true;
                 };
+                server.Disconnected += (e) => {
+                    Console.WriteLine ($"{e} Disconnected.");
+                };
                 server.Start (8001);
                 Console.WriteLine ("Waiting...");
                 bool done = false;

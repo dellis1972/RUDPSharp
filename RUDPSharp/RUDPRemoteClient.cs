@@ -74,9 +74,11 @@ namespace RUDPSharp
                     isConnected = false;
                     return false;
                 case PacketType.Ping:
-                    QueueOutgoing (packet.RemoteEndPoint, PacketType.Pong, Channel.Reliable, new byte[0]);
+                    QueueOutgoing (packet.RemoteEndPoint, PacketType.Pong, Channel.Reliable, packet.Data);
                     break;
                 case PacketType.Pong:
+                    long sent = BitConverter.ToInt64 (packet.Data, 0);
+                    Console.WriteLine ($"Ping/Pong time {TimeSpan.FromTicks (DateTime.Now.Ticks - sent).TotalMilliseconds} ms");
                     // We are still alive :) 
                     break;
             }

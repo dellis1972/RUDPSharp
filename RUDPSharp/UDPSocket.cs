@@ -9,16 +9,14 @@ namespace RUDPSharp
 {
 public class UDPSocket : IDisposable {
         Socket socketIP4;
-        //Socket socketIP6;
+        Socket socketIP6;
         const int BufferSize =  1024;
         const int SioUdpConnreset = -1744830452; //SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12
         const int SocketTTL = 255;
-        private EndPoint endPointFrom = new IPEndPoint(IPAddress.Any, 0);
         string _name;
 
         byte[] emptyData = new byte[0];
         BufferPool<byte> pool = new BufferPool<byte> (BufferSize, 10);
-        SocketAsyncEventArgsPool<SocketAsyncEventArgs> recieveArgsPool;
         SocketAsyncEventArgsPool<SocketAsyncEventArgs> sendArgsPool;
 
         BlockingCollection<(EndPoint remote, byte [] data)> recievedPackets = new BlockingCollection<(EndPoint remote, byte [] data)> ();
@@ -118,7 +116,6 @@ public class UDPSocket : IDisposable {
         public UDPSocket(string name = "UDPSocket")
         {
             _name = name;
-            recieveArgsPool = new SocketAsyncEventArgsPool<SocketAsyncEventArgs> (MaxReceiveThreads, Received);
             sendArgsPool = new SocketAsyncEventArgsPool<SocketAsyncEventArgs> (MaxReceiveThreads, Sent);
         }
 
@@ -127,10 +124,10 @@ public class UDPSocket : IDisposable {
             if (socketIP4 != null)
                 return;
             socketIP4 = new Socket (AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            //socketIP6 = new Socket (AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+            socketIP6 = new Socket (AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
 
             SetupSocket (socketIP4, reuseAddress: true);
-            //SetupSocket (socketIP6, reuseAddress: true);
+            SetupSocket (socketIP6, reuseAddress: true);
         }
 
         public virtual bool Listen (int port)
@@ -138,8 +135,8 @@ public class UDPSocket : IDisposable {
             var ep = new IPEndPoint (IPAddress.Any, port);
             bool result = Bind (socketIP4, ep);
             Console.WriteLine ($"{_name} is Listening on {ep} {result}");
-            //var epV6 = new IPEndPoint (IPAddress.IPv6Any, port);
-            //result &= Bind (socketIP6, epV6);
+            var epV6 = new IPEndPoint (IPAddress.IPv6Any, port);
+            result &= Bind (socketIP6, epV6);
             for (int i=0;i<MaxReceiveThreads;i++) {
                 var receiveAsyncArgs = new SocketAsyncEventArgs ();
                 receiveAsyncArgs.RemoteEndPoint = ep;
@@ -181,7 +178,7 @@ public class UDPSocket : IDisposable {
 
         protected virtual EndPoint GetEndPoint ()
         {
-            return  socketIP4?.LocalEndPoint;// ?? socketIP6.LocalEndPoint;;
+            return  socketIP4?.LocalEndPoint ?? socketIP6.LocalEndPoint;;
         }
 
         public void Complete ()
@@ -200,13 +197,13 @@ public class UDPSocket : IDisposable {
 
             }
             Complete ();
-            // try {
-            //     if (socketIP6 != null) {
-            //         socketIP6.Close ();
-            //     }
-            // } catch {
+            try {
+                if (socketIP6 != null) {
+                    socketIP6.Close ();
+                }
+            } catch {
                 
-            // }
+            }
         }
     }
 }

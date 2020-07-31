@@ -9,10 +9,6 @@ namespace RUDPSharp.Tests
 {
     public class MockUDPSocket : UDPSocket {
 
-        //ConcurrentQueue<(EndPoint endPoint, byte[] data)> outgoing = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
-        ConcurrentQueue<(EndPoint endPoint, byte[] data)> incoming = new ConcurrentQueue<(EndPoint endPoint, byte[] data)> ();
-        BlockingCollection<EndPoint> c = new BlockingCollection<EndPoint> ();
-
         MockUDPSocket link;
         bool listening = false;
         EndPoint endPoint;

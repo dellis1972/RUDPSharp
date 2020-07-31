@@ -17,6 +17,13 @@ namespace Client
         
         static void Main(string[] args)
         {
+            Console.WriteLine ("Enter Host IP");
+            string remoteIp = Console.ReadLine ();
+            IPAddress remoteIpAddress = IPAddress.Parse (remoteIp);
+            Console.WriteLine ("Enter Host Port");
+            string remotePort = Console.ReadLine ();
+            int port = int.Parse (remotePort);
+
             using (var client = new RUDP<UDPSocket> (new UDPSocket ("ClientSocket"))) {
                 client.ConnetionRequested += (e, d) => {
                     Console.WriteLine ($"{e} Connected. {Encoding.ASCII.GetString (d)}");
@@ -28,8 +35,8 @@ namespace Client
                 };
                 client.Start (8000);
                 Console.WriteLine ("Connecting...");
-                client.Connect ("127.0.0.1", 8001);
-                EndPoint ep = new IPEndPoint (IPAddress.Parse ("127.0.0.1"), 8001);
+                client.Connect (remoteIpAddress.ToString (), port);
+                EndPoint ep = new IPEndPoint (remoteIpAddress, port);
                 Console.WriteLine ("Connected.");
 
                 bool done = false;
@@ -42,6 +49,10 @@ namespace Client
                         if (info.Key == ConsoleKey.Enter) {
                             client.SendTo (ep, Channel.ReliableInOrder, Encoding.UTF8.GetBytes (message));
                             message = string.Empty;
+                            continue;
+                        }
+                        if (info.Key == ConsoleKey.P && info.Modifiers.HasFlag (ConsoleModifiers.Control)) {
+                            client.Ping ();
                             continue;
                         }
                         message += info.KeyChar;
