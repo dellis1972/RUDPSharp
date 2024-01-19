@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -53,13 +54,13 @@ namespace RUDPSharp.Tests
                     rUDPClient.Start (8001);
                     rUDPClient.Connect (serverAny.Address.ToString (), 8000);
                     Thread.Sleep (100);
-                    Assert.AreEqual (1, rUDPServer.Remotes.Length);
-                    Assert.AreEqual (1, rUDPClient.Remotes.Length);
+                    Assert.AreEqual (1, rUDPServer.Remotes.Count);
+                    Assert.AreEqual (1, rUDPClient.Remotes.Count);
 
                     rUDPClient.Disconnect ();
                     Thread.Sleep (100);
-                    Assert.AreEqual (0, rUDPServer.Remotes.Length);
-                    Assert.AreEqual (0, rUDPClient.Remotes.Length);
+                    Assert.AreEqual (0, rUDPServer.Remotes.Count);
+                    Assert.AreEqual (0, rUDPClient.Remotes.Count);
                 }
              }
         }
@@ -119,11 +120,11 @@ namespace RUDPSharp.Tests
                     rUDPClient.Start (8001);
                     Assert.IsTrue (rUDPClient.Connect (serverAny.Address.ToString (), 8000));
                     wait.WaitOne (500);
-                    Assert.AreEqual(1, rUDPServer.Remotes.Length);
-                    Assert.AreEqual (rUDPClient.EndPoint, rUDPServer.Remotes[0]);
+                    Assert.AreEqual(1, rUDPServer.Remotes.Count);
+                    Assert.AreEqual (rUDPClient.EndPoint, rUDPServer.Remotes.First ());
 
-                    Assert.AreEqual(1, rUDPClient.Remotes.Length);
-                    Assert.AreEqual (rUDPServer.EndPoint, rUDPClient.Remotes[0]);
+                    Assert.AreEqual(1, rUDPClient.Remotes.Count);
+                    Assert.AreEqual (rUDPServer.EndPoint, rUDPClient.Remotes.First ());
 
                     byte[] message = Encoding.ASCII.GetBytes ("Ping");
                     Assert.IsTrue (rUDPClient.SendTo (rUDPServer.EndPoint, Channel.None, message));
@@ -145,8 +146,8 @@ namespace RUDPSharp.Tests
 
                     Assert.IsTrue (rUDPClient.Disconnect ());
                     Thread.Sleep (100);
-                    Assert.AreEqual (0, rUDPServer.Remotes.Length);
-                    Assert.AreEqual (0, rUDPClient.Remotes.Length);
+                    Assert.AreEqual (0, rUDPServer.Remotes.Count);
+                    Assert.AreEqual (0, rUDPClient.Remotes.Count);
                 }
             }
         }

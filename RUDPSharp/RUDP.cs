@@ -30,7 +30,7 @@ namespace RUDPSharp
 
         public EndPoint EndPoint => socket.EndPoint;
 
-        public EndPoint[] Remotes => remotes.Keys.ToArray ();
+        public ICollection<EndPoint> Remotes => remotes.Keys;
 
         public RUDP (T socket)
         {
