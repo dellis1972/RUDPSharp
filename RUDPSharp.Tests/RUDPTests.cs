@@ -74,14 +74,14 @@ namespace RUDPSharp.Tests
             var ping = Encoding.ASCII.GetBytes ("Ping");
             Assert.IsTrue (await clientSocket.SendTo (serverSocket.EndPoint, ping, default));
             
-            var data = serverSocket.RecievedPackets.Take ();
+            var data = serverSocket.ReceivedPackets.Take ();
             Assert.AreEqual (clientSocket.EndPoint, data.remote);
             Assert.AreEqual (ping.Length, data.data.Length);
             Assert.AreEqual (ping, data.data, $"({(string.Join (",", data.data))}) != ({(string.Join (",", ping))})");
 
             var pong = Encoding.ASCII.GetBytes ("Pong");
             Assert.IsTrue (await serverSocket.SendTo (clientSocket.EndPoint, pong, default));
-            data = clientSocket.RecievedPackets.Take ();
+            data = clientSocket.ReceivedPackets.Take ();
             Assert.AreEqual (serverSocket.EndPoint, data.remote);
             Assert.AreEqual (pong.Length, data.data.Length);
             Assert.AreEqual (pong, data.data, $"({(string.Join (",", data.data))}) != ({(string.Join (",", pong))})");
@@ -97,7 +97,7 @@ namespace RUDPSharp.Tests
                     EndPoint remote = null;
                     byte[] dataReceived = null;
                     var wait = new ManualResetEvent (false);
-                    rUDPServer.ConnetionRequested += (EndPoint e, byte[] data) => {
+                    rUDPServer.ConnectionRequested += (EndPoint e, byte[] data) => {
                         return true;
                     };
                     rUDPServer.DataReceived = (EndPoint e, byte[] data) => {
@@ -106,7 +106,7 @@ namespace RUDPSharp.Tests
                         dataReceived = data;
                         return true;
                     };
-                    rUDPClient.ConnetionRequested += (EndPoint e, byte[] data) => {
+                    rUDPClient.ConnectionRequested += (EndPoint e, byte[] data) => {
                         return true;
                     };
                     rUDPClient.DataReceived = (EndPoint e, byte [] data) => {

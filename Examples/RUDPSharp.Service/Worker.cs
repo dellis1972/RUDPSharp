@@ -22,7 +22,7 @@ namespace RUDPSharp.Service
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using (var server = new RUDP<UDPSocket> (new UDPSocket ("ServerSocket"))) {
-                server.ConnetionRequested += (e, d) => {
+                server.ConnectionRequested += (e, d) => {
                     _logger.LogInformation ( $"{e} Connected. {Encoding.ASCII.GetString (d)}");
                     return true;
                 };

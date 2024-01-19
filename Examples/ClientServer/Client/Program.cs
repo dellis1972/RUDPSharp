@@ -25,7 +25,7 @@ namespace Client
             int port = int.Parse (remotePort);
 
             using (var client = new RUDP<UDPSocket> (new UDPSocket ("ClientSocket"))) {
-                client.ConnetionRequested += (e, d) => {
+                client.ConnectionRequested += (e, d) => {
                     Console.WriteLine ($"{e} Connected. {Encoding.ASCII.GetString (d)}");
                     return true;
                 };

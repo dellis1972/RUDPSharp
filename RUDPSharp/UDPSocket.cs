@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace RUDPSharp
 {
@@ -13,7 +14,7 @@ public class UDPSocket : IDisposable {
         const int BufferSize =  1024;
         const int SioUdpConnreset = -1744830452; //SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12
         const int SocketTTL = 255;
-        string _name;
+        string name;
 
         byte[] emptyData = new byte[0];
         BufferPool<byte> pool = new BufferPool<byte> (BufferSize, 10);
@@ -32,7 +33,7 @@ public class UDPSocket : IDisposable {
         public int SendTimeout { get; set; } = 500;
 
         public int ReceiveTimeout { get; set; } = 500;
-        public BlockingCollection<(EndPoint remote, byte [] data)> RecievedPackets => recievedPackets;
+        public BlockingCollection<(EndPoint remote, byte [] data)> ReceivedPackets => recievedPackets;
 
         void SetupSocket (Socket socket, bool reuseAddress = false)
         {
@@ -76,7 +77,7 @@ public class UDPSocket : IDisposable {
                 }
                 return false;
             }
-            Console.WriteLine ($"{endPoint} Bound");
+            Debug.WriteLine ($"{endPoint} Bound");
             return socket.IsBound;
         }
 
@@ -87,13 +88,13 @@ public class UDPSocket : IDisposable {
 
         void Sent (object sender, SocketAsyncEventArgs e)
         {
-            var tcs = (DataSent)(e.UserToken);
+            var tcs = (DataSent)e.UserToken;
             using (tcs.Registration) {
                 try {
                 if (!tcs.TaskCompletion.Task.IsCanceled && !tcs.TaskCompletion.Task.IsFaulted)
                     tcs.TaskCompletion.TrySetResult (e.SocketError == SocketError.Success);
                 } catch (Exception ex) {
-                    Console.WriteLine (ex);
+                    Debug.WriteLine (ex);
                 }
             }
             sendArgsPool.Return(e);
@@ -107,19 +108,18 @@ public class UDPSocket : IDisposable {
         void Received (object sender, SocketAsyncEventArgs e)
         {
             if (e.BytesTransferred <= 0 || e.SocketError != SocketError.Success)
-                BeginRecieving (e);
-            var remote = e.RemoteEndPoint;
+                BeginReceiving (e);
             byte[] data = new byte[e.BytesTransferred];
             Buffer.BlockCopy (e.Buffer, 0, data, 0, e.BytesTransferred);
             if (!recievedPackets.TryAdd ((e.RemoteEndPoint, data)))
                 return;
 
-            BeginRecieving (e);
+            BeginReceiving (e);
         }
 
         public UDPSocket(string name = "UDPSocket")
         {
-            _name = name;
+            this.name = name;
             sendArgsPool = new SocketAsyncEventArgsPool<SocketAsyncEventArgs> (MaxReceiveThreads, Sent);
         }
 
@@ -138,21 +138,23 @@ public class UDPSocket : IDisposable {
         {
             var ep = new IPEndPoint (IPAddress.Any, port);
             bool result = Bind (socketIP4, ep);
-            Console.WriteLine ($"{_name} is Listening on {ep} {result}");
+            Debug.WriteLine ($"{name} is Listening on {ep} {result}");
             var epV6 = new IPEndPoint (IPAddress.IPv6Any, port);
             result &= Bind (socketIP6, epV6);
             for (int i=0;i<MaxReceiveThreads;i++) {
-                var receiveAsyncArgs = new SocketAsyncEventArgs ();
-                receiveAsyncArgs.RemoteEndPoint = ep;
+                var receiveAsyncArgs = new SocketAsyncEventArgs
+                {
+                    RemoteEndPoint = ep
+                };
                 var buffer = pool.Rent (socketIP4.ReceiveBufferSize);
                 receiveAsyncArgs.SetBuffer (buffer, 0, buffer.Length);
                 receiveAsyncArgs.Completed += Received;
-                BeginRecieving (receiveAsyncArgs);
+                BeginReceiving (receiveAsyncArgs);
             }
             return result;
         }
 
-        void BeginRecieving (SocketAsyncEventArgs receiveAsyncArgs)
+        void BeginReceiving (SocketAsyncEventArgs receiveAsyncArgs)
         {
             if (receiveAsyncArgs.RemoteEndPoint.AddressFamily == AddressFamily.InterNetwork && (!socketIP4.ReceiveFromAsync (receiveAsyncArgs))) {
                 Received (this, receiveAsyncArgs);

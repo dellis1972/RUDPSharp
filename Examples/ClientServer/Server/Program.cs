@@ -10,7 +10,7 @@ namespace Server
         static void Main(string[] args)
         {
             using (var server = new RUDP<UDPSocket> (new UDPSocket ("ServerSocket"))) {
-                server.ConnetionRequested += (e, d) => {
+                server.ConnectionRequested += (e, d) => {
                     Console.WriteLine ($"{e} Connected. {Encoding.ASCII.GetString (d)}");
                     return true;
                 };

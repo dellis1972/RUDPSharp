@@ -41,7 +41,7 @@ namespace RUDPSharp
             if (QueueOrDiscardPendingPackages (endPoint, PendingPacket.FromPacket (endPoint, packet))) {
                 return base.QueueIncomingPacket (endPoint, packet);
             }
-            Console.WriteLine ($"Dropping Packet from {endPoint}. Packet is too old {packet.Sequence} < {sequence}");
+            Debug.WriteLine ($"Dropping Packet from {endPoint}. Packet is too old {packet.Sequence} < {sequence}");
             return null;
         }
     }

@@ -4,5 +4,14 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cSpell.words": [
+
+		],
+		"cSpell.ignoreWords": [
+			"Connreset",
+			"RUDP",
+			"RUDPSharp"
+		]
+	}
 }

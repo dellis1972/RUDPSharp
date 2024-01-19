@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Diagnostics;
 
 namespace RUDPSharp
 {
@@ -23,7 +24,7 @@ namespace RUDPSharp
 
         public Func<EndPoint, byte [] , bool> DataReceived { get; set; }
 
-        public Func<EndPoint, byte [], bool> ConnetionRequested { get; set; }
+        public Func<EndPoint, byte [], bool> ConnectionRequested { get; set; }
 
         public Action<EndPoint> Disconnected { get; set; }
 
@@ -58,9 +59,9 @@ namespace RUDPSharp
         ///<summary>
         /// Attempt to connect to a remote server. Will return true if a connection is made , false otherwise.
         ///</summary>
-        public async Task<bool> ConnectAsync (string host, int port)
+        public Task<bool> ConnectAsync (string host, int port)
         {
-            return false;
+            return new Task<bool> (() => false);
         }
 
         public bool Disconnect ()
@@ -119,7 +120,7 @@ namespace RUDPSharp
             RUDPRemoteClient<T> client;
             try {
                 while (!tokenSource.IsCancellationRequested) {
-                    foreach (var incoming in socket.RecievedPackets.GetConsumingEnumerable (tokenSource.Token)) {
+                    foreach (var incoming in socket.ReceivedPackets.GetConsumingEnumerable (tokenSource.Token)) {
                         if (!remotes.TryGetValue (incoming.remote, out client)) {
                             client = new RUDPRemoteClient<T> (this, incoming.remote);
                             remotes[incoming.remote] = client;
@@ -128,6 +129,7 @@ namespace RUDPSharp
                     }
                 }
             } catch (Exception ex) {
+                Debug.WriteLine (ex);
             }
         }
 

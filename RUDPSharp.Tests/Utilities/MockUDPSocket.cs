@@ -42,9 +42,9 @@ namespace RUDPSharp.Tests
         public override void ReturnBuffer (byte[] buffer){
         }
 
-        public async override Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
+        public override Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
         {
-            return link.RecievedPackets.TryAdd ((EndPoint, data));
+            return Task.FromResult(link.ReceivedPackets.TryAdd ((EndPoint, data)));
         }
     }
 }

@@ -62,7 +62,7 @@ namespace RUDPSharp
         {
             switch (packet.PacketType)  {
                 case PacketType.Connect:
-                    if (!isConnected && client.ConnetionRequested != null && client.ConnetionRequested(packet.RemoteEndPoint, packet.Data)) {
+                    if (!isConnected && client.ConnectionRequested != null && client.ConnectionRequested(packet.RemoteEndPoint, packet.Data)) {
                         isConnected = true;
                         QueueOutgoing (packet.RemoteEndPoint, PacketType.Connect, Channel.Reliable, Encoding.ASCII.GetBytes ("h2ik"));
                     }
@@ -78,7 +78,7 @@ namespace RUDPSharp
                     break;
                 case PacketType.Pong:
                     long sent = BitConverter.ToInt64 (packet.Data, 0);
-                    Console.WriteLine ($"Ping/Pong time {TimeSpan.FromTicks (DateTime.Now.Ticks - sent).TotalMilliseconds} ms");
+                    Debug.WriteLine ($"Ping/Pong time {TimeSpan.FromTicks (DateTime.Now.Ticks - sent).TotalMilliseconds} ms");
                     // We are still alive :) 
                     break;
             }
