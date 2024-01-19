@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <UserSecretsId>dotnet-RUDPSharp.Service-C99C985A-FF44-41A6-94D2-C83509823C91</UserSecretsId>
   </PropertyGroup>
 
