@@ -130,7 +130,7 @@ namespace RUDPSharp.Tests
                     Assert.IsTrue (rUDPClient.SendTo (rUDPServer.EndPoint, Channel.None, message));
                     wait.WaitOne (5000);
 
-                    Assert.AreEqual (message, dataReceived, $"({(string.Join (",", dataReceived ?? new byte[0]))}) != ({(string.Join (",", message))})");
+                    Assert.AreEqual (message, dataReceived, $"({(string.Join (",", dataReceived ?? Array.Empty<byte> ()))}) != ({(string.Join (",", message))})");
                     Assert.AreEqual (rUDPClient.EndPoint, remote);
 
                     message = Encoding.ASCII.GetBytes ("Pong");
@@ -141,7 +141,72 @@ namespace RUDPSharp.Tests
 
                     wait.WaitOne (5000);
 
-                    Assert.AreEqual (message, dataReceived, $"({(string.Join (",", dataReceived ?? new byte[0]))}) != ({(string.Join (",", message))})");
+                    Assert.AreEqual (message, dataReceived, $"({(string.Join (",", dataReceived ?? Array.Empty<byte> ()))}) != ({(string.Join (",", message))})");
+                    Assert.AreEqual (rUDPServer.EndPoint, remote);
+
+                    Assert.IsTrue (rUDPClient.Disconnect ());
+                    Thread.Sleep (100);
+                    Assert.AreEqual (0, rUDPServer.Remotes.Count);
+                    Assert.AreEqual (0, rUDPClient.Remotes.Count);
+                }
+            }
+        }
+
+        [Test]
+        public void TestLargePacketIsDelivered ()
+        {
+            var rnd = new Random ();
+            using (var rUDPServer = new RUDP<MockUDPSocket>(serverSocket)) {
+                using (var rUDPClient = new RUDP<MockUDPSocket>(clientSocket)) {
+                    EndPoint remote = null;
+                    byte[] dataReceived = null;
+                    var wait = new ManualResetEvent (false);
+                    rUDPServer.ConnectionRequested += (EndPoint e, byte[] data) => {
+                        return true;
+                    };
+                    rUDPServer.DataReceived = (EndPoint e, byte[] data) => {
+                        wait.Set ();
+                        remote = e;
+                        dataReceived = data;
+                        return true;
+                    };
+                    rUDPClient.ConnectionRequested += (EndPoint e, byte[] data) => {
+                        return true;
+                    };
+                    rUDPClient.DataReceived = (EndPoint e, byte [] data) => {
+                        wait.Set ();
+                        remote = e;
+                        dataReceived = data;
+                        return true;
+                    };
+                    rUDPServer.Start (8000);
+                    rUDPClient.Start (8001);
+                    Assert.IsTrue (rUDPClient.Connect (serverAny.Address.ToString (), 8000));
+                    wait.WaitOne (500);
+                    Assert.AreEqual(1, rUDPServer.Remotes.Count);
+                    Assert.AreEqual (rUDPClient.EndPoint, rUDPServer.Remotes.First ());
+
+                    Assert.AreEqual(1, rUDPClient.Remotes.Count);
+                    Assert.AreEqual (rUDPServer.EndPoint, rUDPClient.Remotes.First ());
+
+                    byte[] message = new byte[1024];
+                    rnd.NextBytes (message);
+                    Assert.IsTrue (rUDPClient.SendTo (rUDPServer.EndPoint, Channel.None, message));
+                    wait.WaitOne (5000);
+
+                    Assert.AreEqual (message, dataReceived, $"({(string.Join (",", dataReceived ?? Array.Empty<byte> ()))}) != ({(string.Join (",", message))})");
+                    Assert.AreEqual (rUDPClient.EndPoint, remote);
+
+                    message = new byte[1024];
+                    rnd.NextBytes (message);
+                    dataReceived = null;
+                    remote = null;
+                    wait.Reset ();
+                    Assert.IsTrue (rUDPServer.SendToAll (Channel.None, message));
+
+                    wait.WaitOne (5000);
+
+                    Assert.AreEqual (message, dataReceived, $"({(string.Join (",", dataReceived ?? Array.Empty<byte> ()))}) != ({(string.Join (",", message))})");
                     Assert.AreEqual (rUDPServer.EndPoint, remote);
 
                     Assert.IsTrue (rUDPClient.Disconnect ());

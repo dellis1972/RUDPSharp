@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Diagnostics;
 
 namespace RUDPSharp
 {
@@ -15,9 +16,11 @@ namespace RUDPSharp
 
         }
 
-        protected override bool CheckSequence(int packet, int sequence)
+        protected override int CheckSequence(int packet, int sequence)
         {
-            return packet == sequence+1 || sequence == -1;
+            if (packet != sequence + 1)
+                return 1;
+            return base.CheckSequence (packet, sequence);
         }
 
         protected override bool QueueOrDiscardPendingPackages(EndPoint endPoint, PendingPacket packet)
@@ -45,8 +48,10 @@ namespace RUDPSharp
             }
             long now = DateTime.Now.Ticks;
             for (int i=pendingPackets.Count-1; i >= 0 ; i--) {
-                if (pendingPackets.Keys[i] < RemoteSequence || (now - pendingPackets.Values[0].Sent > PacketExpire.Ticks)) {
+                pendingPacket = pendingPackets.Values[0];
+                if (pendingPackets.Keys[i] < RemoteSequence || (now - pendingPacket.Sent > PacketExpire.Ticks)) {
                     pendingPackets.RemoveAt (i);
+                    Debug.WriteLine ($"Dropping Packet from {endPoint}. Packet is too old {now - pendingPacket.Sent} > {PacketExpire.Ticks}");
                 }
             }
             return pendingPacket;

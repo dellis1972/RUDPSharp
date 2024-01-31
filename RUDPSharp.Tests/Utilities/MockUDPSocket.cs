@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using NUnit.Framework.Constraints;
 using RUDPSharp;
 
 namespace RUDPSharp.Tests
 {
     public class MockUDPSocket : UDPSocket {
 
-        MockUDPSocket link;
+        List<MockUDPSocket> links = new List<MockUDPSocket> ();
         bool listening = false;
         EndPoint endPoint;
 
@@ -23,8 +25,8 @@ namespace RUDPSharp.Tests
         }
 
         public void Link (MockUDPSocket socket){
-            socket.link = this;
-            link = socket;
+            socket.links.Add (this);
+            links.Add (socket);
         }
 
         public override bool Listen (int port)
@@ -44,7 +46,12 @@ namespace RUDPSharp.Tests
 
         public override Task<bool> SendTo (EndPoint endPoint, byte[] data, System.Threading.CancellationToken token)
         {
-            return Task.FromResult(link.ReceivedPackets.TryAdd ((EndPoint, data)));
+            foreach (var link in links) {
+                if (link.endPoint.Equals (endPoint)) {
+                    return Task.FromResult(link.ReceivedPackets.TryAdd ((EndPoint, data)));
+                }
+            }
+            return Task.FromResult (false);
         }
     }
 }

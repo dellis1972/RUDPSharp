@@ -16,7 +16,6 @@ public class UDPSocket : IDisposable {
         const int SocketTTL = 255;
         string name;
 
-        byte[] emptyData = new byte[0];
         BufferPool<byte> pool = new BufferPool<byte> (BufferSize, 10);
         SocketAsyncEventArgsPool<SocketAsyncEventArgs> sendArgsPool;
 

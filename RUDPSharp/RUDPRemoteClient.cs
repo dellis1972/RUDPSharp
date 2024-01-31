@@ -38,14 +38,14 @@ namespace RUDPSharp
             channels[packet.Channel].QueueIncomingPacket (remoteEndPoint, packet);
         }
 
-        IEnumerable<UnreliableChannel.PendingPacket> GetOutgoingPackets ()
+        IEnumerable<PendingPacket> GetOutgoingPackets ()
         {
             foreach (var channel in channels)
                 foreach (var packet in channel.Value.GetPendingOutgoingPackets ())
                     yield return packet;
         }
 
-        IEnumerable<UnreliableChannel.PendingPacket> GetIncomingPackets ()
+        IEnumerable<PendingPacket> GetIncomingPackets ()
         {
             foreach (var channel in channels)
                 foreach (var packet in channel.Value.GetPendingIncomingPackets ())
@@ -58,7 +58,7 @@ namespace RUDPSharp
                 packetType == PacketType.Ping || packetType == PacketType.Pong;
         }
 
-        bool HandleSystemPacket (UnreliableChannel.PendingPacket packet)
+        bool HandleSystemPacket (PendingPacket packet)
         {
             switch (packet.PacketType)  {
                 case PacketType.Connect:

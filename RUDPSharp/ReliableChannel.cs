@@ -7,7 +7,7 @@ namespace RUDPSharp
 {
     public class ReliableChannel : InOrderChannel {
         PacketAcknowledgement acknowledgement = new PacketAcknowledgement();
-        public ReliableChannel(int maxBufferSize = 100) : base (maxBufferSize)
+        public ReliableChannel(int maxBufferSize = 1024) : base (maxBufferSize)
         {
         }
 
@@ -21,7 +21,7 @@ namespace RUDPSharp
         {
             if (!acknowledgement.HandleIncommingPacket(packet))
             {
-                QueueOutgoingPacket(endPoint, new Packet(PacketType.Ack, packet.Channel, packet.Sequence, new byte[0]));
+                QueueOutgoingPacket(endPoint, new Packet(PacketType.Ack, packet.Channel, packet.Sequence, Array.Empty<byte> ()));
                 return base.QueueIncomingPacket (endPoint, packet);
             }
             // ignore Ack Packets

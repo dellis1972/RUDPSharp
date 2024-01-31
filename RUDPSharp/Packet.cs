@@ -28,7 +28,7 @@ namespace RUDPSharp
             Fragmented = header.fragmented;
         }
 
-        public Packet (PacketType packetType, Channel channel, ReadOnlySpan <byte> payload)
+        public Packet (PacketType packetType, Channel channel, ReadOnlySpan <byte> payload, bool fragmented = false)
         {
             byte header = EncodeHeader (packetType, channel);
             rawData = new byte[payload.Length + PAYLOAD_OFFSET];
@@ -37,12 +37,12 @@ namespace RUDPSharp
             payload.TryCopyTo (span.Slice (PAYLOAD_OFFSET));
             PacketType = packetType;
             Channel = channel;
-            Fragmented = false;
+            Fragmented = fragmented;
             Sequence = 0;
         }
 
-        public Packet (PacketType packetType, Channel channel, ushort sequence, ReadOnlySpan <byte> payload)
-            : this (packetType, channel, payload)
+        public Packet (PacketType packetType, Channel channel, ushort sequence, ReadOnlySpan <byte> payload, bool fragmented = false)
+            : this (packetType, channel, payload, fragmented: fragmented)
         {
             Sequence = sequence;
         }
