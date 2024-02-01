@@ -88,6 +88,7 @@ namespace RUDPSharp.Tests
                     Thread.Sleep (100);
                     Assert.AreEqual (0, rUDPServer.Remotes.Count);
                     Assert.AreEqual (0, rUDPClient.Remotes.Count);
+                    rUDPServer.Disconnect ();
                 }
              }
         }

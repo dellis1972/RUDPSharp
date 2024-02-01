@@ -164,12 +164,20 @@ namespace RUDPSharp
             socket.Complete ();
             tokenSource.Cancel ();
             if (poll != null) {
-                poll.Wait ();
+                try {
+                    poll.Wait ();
+                } catch (TaskCanceledException) {
+                    // ignore this.
+                }
                 poll.Dispose ();
                 poll = null;
             }
             if (readSocket != null) {
+                try {
                 readSocket.Wait ();
+                } catch (TaskCanceledException) {
+                    // ignore this.
+                }
                 readSocket.Dispose ();
                 readSocket = null;
             }
