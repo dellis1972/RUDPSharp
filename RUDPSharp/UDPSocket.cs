@@ -106,8 +106,10 @@ public class UDPSocket : IDisposable {
 
         void Received (object sender, SocketAsyncEventArgs e)
         {
-            if (e.BytesTransferred <= 0 || e.SocketError != SocketError.Success)
+            if (e.BytesTransferred <= 0 || e.SocketError != SocketError.Success) {
                 BeginReceiving (e);
+                return;
+            }
             byte[] data = new byte[e.BytesTransferred];
             Buffer.BlockCopy (e.Buffer, 0, data, 0, e.BytesTransferred);
             if (!recievedPackets.TryAdd ((e.RemoteEndPoint, data)))
