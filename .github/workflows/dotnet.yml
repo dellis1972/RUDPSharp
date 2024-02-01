@@ -10,9 +10,45 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build_windows:
+
+    runs-on: windows-latest
+    name: Build and Test on Windows
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+  build_mac:
+
+    runs-on: macos-latest
+    name: Build and Test on MacOS
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+  build_linux:
 
     runs-on: ubuntu-latest
+    name: Build and Test on Linux
 
     steps:
     - uses: actions/checkout@v3

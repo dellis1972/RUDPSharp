@@ -148,6 +148,7 @@ namespace RUDPSharp.Tests
                     rUDPClient.Start (8001);
                     Assert.IsTrue (rUDPClient.Connect (serverAny.Address.ToString (), 8000));
                     wait.WaitOne (500);
+                    wait.Reset ();
                     Assert.AreEqual(1, rUDPServer.Remotes.Count);
                     Assert.AreEqual (rUDPClient.EndPoint, rUDPServer.Remotes.First ());
 
