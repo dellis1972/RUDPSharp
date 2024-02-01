@@ -31,6 +31,33 @@ namespace RUDPSharp.Tests
             serverSocket.Link (clientSocket);
         }
 
+        [Test]
+        public void TestActualSockets ()
+        {
+            RUDP<UDPSocket> s1 = new RUDP<UDPSocket>(new UDPSocket());
+            RUDP<UDPSocket> s2 = new RUDP<UDPSocket>(new UDPSocket());
+            var wait = new ManualResetEvent (false);
+
+            s1.Start(4545);
+            s2.Start(5454);
+
+            s2.ConnectionRequested += (EndPoint e, byte[] data) => {
+                Console.WriteLine($"{e} Connected. {Encoding.ASCII.GetString(data)}");
+                wait.Set ();
+                return true;
+            };
+            wait.Reset ();
+            s1.Connect("127.0.0.1", 5454);
+            wait.WaitOne (5000);
+            wait.Reset ();
+            s1.SendToAll(Channel.ReliableInOrder, new byte[1024]);
+
+           // wait.WaitOne (5000);
+
+            Assert.IsTrue (s1.Disconnect ());
+            Assert.IsTrue (s2.Disconnect ());
+        }
+
         // [Test]
         // public async Task ClientExample ()
         // {

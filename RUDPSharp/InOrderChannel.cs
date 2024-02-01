@@ -42,7 +42,7 @@ namespace RUDPSharp
 
         public InOrderChannel(int maxBufferSize = 1024) : base (maxBufferSize)
         {
-            
+
         }
 
         public override PendingPacket QueueOutgoingPacket (EndPoint endPoint, Packet packet)

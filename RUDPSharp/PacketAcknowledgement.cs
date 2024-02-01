@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using static RUDPSharp.UnreliableChannel;
 
 namespace RUDPSharp
 {
+    /// <summary>
+    /// This class handles the outgoing/incoming packet acknowledgements
+    /// </summary>
     class PacketAcknowledgement
     {
-        Dictionary<int, PendingPacket> sent = new Dictionary<int, PendingPacket>();
-        Queue<int> expired = new Queue<int> ();
+        ConcurrentDictionary<int, PendingPacket> sent = new ConcurrentDictionary<int, PendingPacket>();
+        ConcurrentQueue<int> expired = new ConcurrentQueue<int> ();
 
         public TimeSpan PacketExpire {get ;set; } = TimeSpan.FromMilliseconds(500);
         public int ResentCount  {get;set;} = 3;
@@ -20,12 +24,14 @@ namespace RUDPSharp
                 // find the item in "sent" and remove it.
                 if (sent.TryGetValue(packet.Sequence, out PendingPacket pendingPacket))
                 {
-                    sent.Remove(packet.Sequence);
+                    sent.TryRemove(packet.Sequence, out PendingPacket _);
                 }
                 return true;
             }
-            while (expired.Count > 0)
-                sent.Remove (expired.Dequeue ());
+            while (expired.Count > 0) {
+                if (expired.TryDequeue (out int i))
+                    sent.TryRemove (i, out PendingPacket _);
+            }
             return false;
         }
 
@@ -33,7 +39,7 @@ namespace RUDPSharp
         {
             if (pendingPacket.PacketType != PacketType.Ack)
             {
-                sent.Add(sequence, pendingPacket);
+                sent.TryAdd(sequence, pendingPacket);
                 return true;
             }
             return false;

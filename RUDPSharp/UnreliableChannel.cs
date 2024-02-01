@@ -30,7 +30,7 @@ namespace RUDPSharp
             return outgoing.TryDequeue (out packet);
         }
 
-        public bool TryGetNextIncomingPacket (out PendingPacket packet)
+        public virtual bool TryGetNextIncomingPacket (out PendingPacket packet)
         {
             packet = null;
             if (incoming.Count == 0)

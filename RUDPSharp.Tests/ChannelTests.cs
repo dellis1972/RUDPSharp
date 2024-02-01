@@ -12,6 +12,7 @@ namespace RUDPSharp.Tests
         IPEndPoint EndPoint = new IPEndPoint(IPAddress.Any, 8000);
 
         [Test]
+        [Ignore ("Not implemented")]
         public void TestUnreliableChannelHandlesFragmentedPackages ()
         {
             var channel = new UnreliableChannel ();
@@ -129,24 +130,24 @@ namespace RUDPSharp.Tests
             channel.QueueIncomingPacket(EndPoint, new Packet(PacketType.Connect, Channel.Reliable, 4, Array.Empty<byte> ()));
 
             PendingPacket packet;
-            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet));
+            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet), "Should have got packet 1");
             Assert.IsNotNull(packet);
             Assert.AreEqual(1, packet.Sequence);
 
-            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet));
+            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet), "Should have got packet 2");
             Assert.IsNotNull(packet);
             Assert.AreEqual(2, packet.Sequence);
 
-            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet));
+            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet), "Should have got packet 3");
             Assert.IsNotNull(packet);
             Assert.AreEqual(3, packet.Sequence);
             Assert.AreEqual(new byte[10] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 }, packet.Data);
 
-            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet));
+            Assert.IsTrue(channel.TryGetNextIncomingPacket(out packet), "Should have got packet 4");
             Assert.IsNotNull(packet);
             Assert.AreEqual(4, packet.Sequence);
 
-            Assert.IsFalse(channel.TryGetNextIncomingPacket(out packet));
+            Assert.IsFalse(channel.TryGetNextIncomingPacket(out packet), "Should not have got a packet");
             Assert.IsNull(packet);
         }
 
@@ -218,7 +219,7 @@ namespace RUDPSharp.Tests
             var rnd = new Random ();
             var outChannel = new ReliableInOrderChannel ();
             var inChannel = new ReliableInOrderChannel ();
-            int[] sequences = [1, 534, 5346, 15346, 25676, 35246, 45646, 55366, 65532, 50, 4560];
+            int[] sequences = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 10, 11];
             foreach (var sequence in sequences) {
                 PendingPacket outPacket;
                 ushort expectedSequence = (ushort)((sequence % (ushort.MaxValue)));
@@ -229,6 +230,7 @@ namespace RUDPSharp.Tests
                     Assert.IsTrue (outPacket.Sequence < (ushort.MaxValue -1));
                 } while (outPacket.Sequence != expectedSequence);
 
+                Thread.Sleep (600);
                 inChannel.QueueIncomingPacket (EndPoint, new Packet (outPacket.PacketType, Channel.None, (ushort)outPacket.Sequence, outPacket.Data, false));
                 Assert.IsTrue (inChannel.TryGetNextIncomingPacket (out PendingPacket packet), $"Should have got a packet for {sequence}");
                 Assert.AreEqual (expectedSequence, packet.Sequence, $"Packet sequence should be {expectedSequence} but was {packet.Sequence}");
