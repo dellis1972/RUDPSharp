@@ -81,22 +81,30 @@ namespace RUDPSharp.Tests
              using (var rUDPServer = new RUDP<MockUDPSocket>(serverSocket)) {
                 using (var rUDPClient = new RUDP<MockUDPSocket>(clientSocket)) {
                     var serverWait = new ManualResetEvent (false);
+                    var wait = new ManualResetEvent (false);
                     rUDPServer.ConnectionRequested += (EndPoint e, byte[] data) => {
                         serverWait.Set ();
                         return true;
+                    };
+                    rUDPServer.Disconnected += (EndPoint) => {
+                        serverWait.Set ();
+                    };
+                    rUDPClient.Disconnected += (EndPoint) => {
+                        serverWait.Set ();
                     };
                     rUDPServer.Start (8000);
                     rUDPClient.Start (8001);
                     rUDPClient.Connect (serverAny.Address.ToString (), 8000);
                      Thread.Sleep (1000);
-                    serverWait.WaitOne (500);
+                    serverWait.WaitOne (1000);
                     serverWait.Reset ();
                     Assert.AreEqual (1, rUDPServer.Remotes.Count);
                     Assert.AreEqual (1, rUDPClient.Remotes.Count);
 
                     rUDPClient.Disconnect ();
-                    Thread.Sleep (100);
+                    serverWait.WaitOne (1000);
                     Assert.AreEqual (0, rUDPServer.Remotes.Count);
+                    wait.WaitOne (1000);
                     Assert.AreEqual (0, rUDPClient.Remotes.Count);
                     rUDPServer.Disconnect ();
                 }
