@@ -166,7 +166,7 @@ namespace RUDPSharp
             if (poll != null) {
                 try {
                     Console.WriteLine ($"DEBUG! {poll.Status}");
-                    if (!poll.IsCanceled)
+                    if (!poll.IsCanceled && !poll.IsCompleted)
                         poll.Wait ();
                 } catch (TaskCanceledException) {
                     // ignore this.
@@ -177,7 +177,7 @@ namespace RUDPSharp
             if (readSocket != null) {
                 try {
                     Console.WriteLine ($"DEBUG! {readSocket.Status}");
-                    if (!readSocket.IsCanceled)
+                    if (!readSocket.IsCanceled && !poll.IsCompleted)
                         readSocket.Wait ();
                 } catch (TaskCanceledException) {
                     // ignore this.
