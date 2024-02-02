@@ -88,6 +88,7 @@ namespace RUDPSharp.Tests
                     rUDPServer.Start (8000);
                     rUDPClient.Start (8001);
                     rUDPClient.Connect (serverAny.Address.ToString (), 8000);
+                     Thread.Sleep (1000);
                     serverWait.WaitOne (500);
                     serverWait.Reset ();
                     Assert.AreEqual (1, rUDPServer.Remotes.Count);
@@ -210,6 +211,7 @@ namespace RUDPSharp.Tests
                         return true;
                     };
                     rUDPServer.DataReceived = (EndPoint e, byte[] data) => {
+                        Console.WriteLine ("DEBUG! TestLargePacketIsDelivered: Server got Data!");
                         wait.Set ();
                         remote = e;
                         dataReceived = data;
@@ -220,6 +222,7 @@ namespace RUDPSharp.Tests
                         return true;
                     };
                     rUDPClient.DataReceived = (EndPoint e, byte [] data) => {
+                        Console.WriteLine ("DEBUG! TestLargePacketIsDelivered: Client got Data!");
                         wait.Set ();
                         remote = e;
                         dataReceived = data;
