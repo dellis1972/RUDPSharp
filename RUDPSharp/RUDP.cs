@@ -165,7 +165,7 @@ namespace RUDPSharp
             tokenSource.Cancel ();
             if (poll != null) {
                 try {
-                    Console.WriteLine ($"DEBUG! {poll.Status}");
+                    Console.WriteLine ($"DEBUG! Poll: {poll.Status}");
                     if (!poll.IsCanceled && !poll.IsCompleted)
                         poll.Wait ();
                 } catch (TaskCanceledException) {
@@ -176,7 +176,7 @@ namespace RUDPSharp
             }
             if (readSocket != null) {
                 try {
-                    Console.WriteLine ($"DEBUG! {readSocket.Status}");
+                    Console.WriteLine ($"DEBUG! ReadSocket: {readSocket.Status}");
                     if (!readSocket.IsCanceled && !readSocket.IsCompleted)
                         readSocket.Wait ();
                 } catch (TaskCanceledException) {
